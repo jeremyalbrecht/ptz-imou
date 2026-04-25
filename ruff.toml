@@ -1,0 +1,7 @@
+[lint]
+select = ["E", "F", "W", "I", "UP"]
+ignore = []
+
+[lint.isort]
+known-first-party = ["imou_ptz"]
+
