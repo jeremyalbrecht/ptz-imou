@@ -97,7 +97,7 @@ class DahuaDVRIP:
         try:
             self.sock.settimeout(2)
             return self.sock.recv(4096)
-        except socket.timeout:
+        except TimeoutError:
             return b""
         finally:
             self.sock.settimeout(10)
@@ -119,7 +119,7 @@ class DahuaDVRIP:
             }
             try:
                 self._send_json(f"ptz.{action}", params)
-            except (socket.error, OSError):
+            except OSError:
                 self.connect()
                 self._send_json(f"ptz.{action}", params)
 

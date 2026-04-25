@@ -3,9 +3,9 @@
 import json
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from http.server import BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import parse_qs, urlparse
 
 from .constants import PTZ_CODES, PTZ_VEL_SPACE, ZOOM_VEL_SPACE
 from .onvif import detect_operation, find_element, soap_envelope, velocity_to_ptz
@@ -127,7 +127,7 @@ class RequestHandler(BaseHTTPRequestHandler):
     # ---- Device service ----
 
     def _onvif_date_time(self, _elem):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         self._send_xml(
             '<tds:GetSystemDateAndTimeResponse><tds:SystemDateAndTime>'
             '<tt:DateTimeType>NTP</tt:DateTimeType>'
@@ -367,7 +367,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         if code:
             try:
                 self.dvrip.ptz_move(code, speed=speed, duration=step_dur)
-                self.log_message("PTZ ContinuousMove → %s speed=%d step=%.1fs", code, speed, step_dur)
+                self.log_message(
+                    "PTZ ContinuousMove → %s speed=%d step=%.1fs", code, speed, step_dur
+                )
             except Exception as e:
                 self.log_message("PTZ error: %s", e)
         self._send_xml('<tptz:ContinuousMoveResponse/>')
@@ -393,7 +395,9 @@ class RequestHandler(BaseHTTPRequestHandler):
             dur = max(0.1, min(2.0, max(abs(pan), abs(tilt), abs(zoom))))
             try:
                 self.dvrip.ptz_move(code, speed=speed, duration=dur)
-                self.log_message("PTZ RelativeMove → %s speed=%d dur=%.1f", code, speed, dur)
+                self.log_message(
+                    "PTZ RelativeMove → %s speed=%d dur=%.1f", code, speed, dur
+                )
             except Exception as e:
                 self.log_message("PTZ error: %s", e)
         self._send_xml('<tptz:RelativeMoveResponse/>')
@@ -403,7 +407,9 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def _onvif_goto_preset(self, elem):
         token_elem = find_element(elem, "PresetToken")
-        preset = int(token_elem.text) if token_elem is not None and token_elem.text else 1
+        preset = (
+            int(token_elem.text) if token_elem is not None and token_elem.text else 1
+        )
         try:
             self.dvrip.ptz_goto_preset(preset)
             self.log_message("PTZ GotoPreset %d", preset)
@@ -413,7 +419,9 @@ class RequestHandler(BaseHTTPRequestHandler):
 
     def _onvif_set_preset(self, elem):
         token_elem = find_element(elem, "PresetToken")
-        preset = int(token_elem.text) if token_elem is not None and token_elem.text else 1
+        preset = (
+            int(token_elem.text) if token_elem is not None and token_elem.text else 1
+        )
         try:
             self.dvrip.ptz_set_preset(preset)
             self.log_message("PTZ SetPreset %d", preset)

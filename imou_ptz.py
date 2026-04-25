@@ -25,9 +25,9 @@ import sys
 import threading
 import time
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
+from datetime import UTC, datetime
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import parse_qs, urlparse
 
 PTZ_CODES = [
     "Left", "Right", "Up", "Down",
@@ -129,7 +129,7 @@ class DahuaDVRIP:
         try:
             self.sock.settimeout(2)
             return self.sock.recv(4096)
-        except socket.timeout:
+        except TimeoutError:
             return b""
         finally:
             self.sock.settimeout(10)
@@ -151,7 +151,7 @@ class DahuaDVRIP:
             }
             try:
                 self._send_json(f"ptz.{action}", params)
-            except (socket.error, OSError):
+            except OSError:
                 self.connect()
                 self._send_json(f"ptz.{action}", params)
 
@@ -380,7 +380,7 @@ class RequestHandler(BaseHTTPRequestHandler):
     # ---- Device service responses ----
 
     def _onvif_date_time(self, _elem):
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         self._send_xml(
             '<tds:GetSystemDateAndTimeResponse>'
             '<tds:SystemDateAndTime>'
@@ -766,12 +766,12 @@ def run_server(bind, port, camera_config):
 
     server = HTTPServer((bind, port), RequestHandler)
     print(f"\nONVIF PTZ Proxy listening on {bind}:{port}")
-    print(f"  ONVIF:  POST /onvif/device_service")
-    print(f"          POST /onvif/media_service")
-    print(f"          POST /onvif/ptz_service")
-    print(f"  HTTP:   GET  /health")
-    print(f"          GET  /ptz/move?code=Right&speed=5&duration=0.5")
-    print(f"          GET  /ptz/stop")
+    print("  ONVIF:  POST /onvif/device_service")
+    print("          POST /onvif/media_service")
+    print("          POST /onvif/ptz_service")
+    print("  HTTP:   GET  /health")
+    print("          GET  /ptz/move?code=Right&speed=5&duration=0.5")
+    print("          GET  /ptz/stop")
     server.serve_forever()
 
 

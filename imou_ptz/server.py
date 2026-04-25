@@ -13,7 +13,9 @@ def run_server(bind, port, camera_config):
         username=camera_config["username"],
         password=camera_config["password"],
     )
-    print(f"Connecting to camera {camera_config['host']}:{camera_config.get('dvrip_port', 37777)}...")
+    host = camera_config['host']
+    dvrip_port = camera_config.get('dvrip_port', 37777)
+    print(f"Connecting to camera {host}:{dvrip_port}...")
     dvrip.connect()
     print("DVRIP authenticated successfully.")
 
