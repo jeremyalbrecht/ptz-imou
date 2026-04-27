@@ -5,7 +5,13 @@ on:
       - main
       - "feature/**"
     tags:
-      - "v*.*.*"
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref (tag or branch) to build"
+        required: true
+        default: "main"
 concurrency:
   group: docker-${{ github.ref }}
   cancel-in-progress: false
@@ -31,14 +37,20 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Resolve ref
+        id: resolve
+        run: |
+          REF="${{ github.event.inputs.ref || github.ref }}"
+          echo "REF=${REF}" >> "$GITHUB_OUTPUT"
       - name: Sanitise feature tag
-        if: startsWith(github.ref, 'refs/heads/feature/')
+        if: startsWith(steps.resolve.outputs.REF, 'refs/heads/feature/')
         id: feature-tag
         run: |
-          RAW="${GITHUB_REF#refs/heads/}"
+          RAW="${{ steps.resolve.outputs.REF }}"
+          RAW="${RAW#refs/heads/}"
           echo "TAG=${RAW//\//-}" >> "$GITHUB_OUTPUT"
       - name: Build & push to GHCR (feature)
-        if: startsWith(github.ref, 'refs/heads/feature/')
+        if: startsWith(steps.resolve.outputs.REF, 'refs/heads/feature/')
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -48,7 +60,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Build & push to GHCR (:latest)
-        if: github.ref == 'refs/heads/main'
+        if: steps.resolve.outputs.REF == 'refs/heads/main'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -58,7 +70,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Extract metadata (release tag)
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(steps.resolve.outputs.REF, 'refs/tags/v')
         id: meta-release
         uses: docker/metadata-action@v5
         with:
@@ -69,7 +81,7 @@ jobs:
             type=semver,pattern={{major}}
             type=raw,value=latest
       - name: Build & push to GHCR (versioned)
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(steps.resolve.outputs.REF, 'refs/tags/v')
         uses: docker/build-push-action@v6
         with:
           context: .

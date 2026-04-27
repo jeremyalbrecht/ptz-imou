@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      actions: write
 
     steps:
       - name: Checkout
@@ -60,6 +61,14 @@ jobs:
           git tag -a "${{ steps.version.outputs.TAG }}" \
                   -m "Release ${{ steps.version.outputs.TAG }}"
           git push origin "${{ steps.version.outputs.TAG }}"
+
+      - name: Trigger Docker build for release tag
+        run: |
+          gh workflow run docker.yml \
+            --ref "${{ steps.version.outputs.TAG }}" \
+            -f ref="refs/tags/${{ steps.version.outputs.TAG }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
