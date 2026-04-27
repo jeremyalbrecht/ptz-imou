@@ -72,7 +72,8 @@ jobs:
             ${{ steps.changelog.outputs.CHANGELOG }}
 
             ---
-            **Docker image:** `${{ secrets.DOCKERHUB_USERNAME }}/imou-ptz:${{ steps.version.outputs.VERSION }}`
+            **GitHub Package (versioned):** `ghcr.io/${{ github.repository_owner }}/imou-ptz:${{ steps.version.outputs.VERSION }}`
+            **GitHub Package (latest):** `ghcr.io/${{ github.repository_owner }}/imou-ptz:latest`
           draft: false
           prerelease: false
           generate_release_notes: false
