@@ -4,7 +4,7 @@ build-backend = "setuptools.backends.legacy:build"
 
 [project]
 name = "imou-ptz"
-version = "0.1.0"
+version = "0.1.1"
 description = "ONVIF PTZ proxy for IMOU/Dahua cameras"
 requires-python = ">=3.12"
 dependencies = []

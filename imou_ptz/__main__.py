@@ -27,9 +27,7 @@ def main():
     )
     sub = parser.add_subparsers(dest="command")
 
-    serve_p = _camera_args(
-        sub.add_parser("serve", parents=[parent], help="Run ONVIF PTZ proxy server")
-    )
+    serve_p = sub.add_parser("serve", parents=[parent], help="Run ONVIF PTZ proxy server")
     serve_p.add_argument("--bind", default="0.0.0.0")
     serve_p.add_argument(
         "--api-port",
@@ -37,14 +35,12 @@ def main():
         default=int(os.environ.get("API_PORT", "8000")),
     )
 
-    move_p = _camera_args(
-        sub.add_parser("move", parents=[parent], help="Execute a PTZ movement")
-    )
+    move_p = sub.add_parser("move", parents=[parent], help="Execute a PTZ movement")
     move_p.add_argument("code", choices=[c.lower() for c in PTZ_CODES])
     move_p.add_argument("--speed", type=int, default=5)
     move_p.add_argument("--duration", type=float, default=0.5)
 
-    _camera_args(sub.add_parser("stop", parents=[parent], help="Stop PTZ movement"))
+    sub.add_parser("stop", parents=[parent], help="Stop PTZ movement")
 
     args = parser.parse_args()
 
